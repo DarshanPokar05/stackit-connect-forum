@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { useCreateQuestion } from "@/hooks/useQuestions";
 
 interface AskQuestionModalProps {
   open: boolean;
@@ -25,6 +26,8 @@ export const AskQuestionModal = ({ open, onClose }: AskQuestionModalProps) => {
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState("");
 
+  const createQuestion = useCreateQuestion();
+
   const handleTagAdd = (tag: string) => {
     if (!selectedTags.includes(tag) && selectedTags.length < 5) {
       setSelectedTags([...selectedTags, tag]);
@@ -37,13 +40,19 @@ export const AskQuestionModal = ({ open, onClose }: AskQuestionModalProps) => {
 
   const handleSubmit = () => {
     if (title.trim() && description.trim() && selectedTags.length > 0) {
-      console.log("Submitting question:", { title, description, tags: selectedTags });
-      // Reset form
-      setTitle("");
-      setDescription("");
-      setSelectedTags([]);
-      setTagInput("");
-      onClose();
+      createQuestion.mutate(
+        { title, description, tags: selectedTags },
+        {
+          onSuccess: () => {
+            // Reset form
+            setTitle("");
+            setDescription("");
+            setSelectedTags([]);
+            setTagInput("");
+            onClose();
+          }
+        }
+      );
     }
   };
 
@@ -189,9 +198,9 @@ export const AskQuestionModal = ({ open, onClose }: AskQuestionModalProps) => {
             <Button 
               onClick={handleSubmit}
               className="bg-blue-600 hover:bg-blue-700"
-              disabled={!title.trim() || !description.trim() || selectedTags.length === 0}
+              disabled={!title.trim() || !description.trim() || selectedTags.length === 0 || createQuestion.isPending}
             >
-              Post Your Question
+              {createQuestion.isPending ? 'Posting...' : 'Post Your Question'}
             </Button>
           </div>
         </div>

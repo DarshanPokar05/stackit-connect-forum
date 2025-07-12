@@ -2,76 +2,70 @@
 import { Clock, MessageCircle, ChevronUp, Tag } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-
-interface Question {
-  id: string;
-  title: string;
-  description: string;
-  author: string;
-  createdAt: string;
-  tags: string[];
-  votes: number;
-  answers: number;
-  views: number;
-  hasAcceptedAnswer: boolean;
-}
+import { useQuestions } from "@/hooks/useQuestions";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface QuestionListProps {
   onQuestionClick: (id: string) => void;
 }
 
-// Mock data for demonstration
-const mockQuestions: Question[] = [
-  {
-    id: "1",
-    title: "How to implement JWT authentication in React?",
-    description: "I'm trying to implement JWT authentication in my React application but I'm having trouble with token storage and refresh...",
-    author: "john_doe",
-    createdAt: "2 hours ago",
-    tags: ["React", "JWT", "Authentication"],
-    votes: 15,
-    answers: 3,
-    views: 142,
-    hasAcceptedAnswer: true
-  },
-  {
-    id: "2",
-    title: "Best practices for React component state management",
-    description: "What are the current best practices for managing state in React components? Should I use useState, useReducer, or context?",
-    author: "jane_smith",
-    createdAt: "4 hours ago",
-    tags: ["React", "State Management", "Hooks"],
-    votes: 8,
-    answers: 5,
-    views: 89,
-    hasAcceptedAnswer: false
-  },
-  {
-    id: "3",
-    title: "How to optimize database queries in PostgreSQL?",
-    description: "My PostgreSQL queries are running slow. What are some techniques to optimize them?",
-    author: "dev_master",
-    createdAt: "1 day ago",
-    tags: ["PostgreSQL", "Database", "Performance"],
-    votes: 23,
-    answers: 7,
-    views: 234,
-    hasAcceptedAnswer: true
-  }
-];
-
 export const QuestionList = ({ onQuestionClick }: QuestionListProps) => {
+  const { data: questions, isLoading, error } = useQuestions();
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h2 className="text-3xl font-bold text-gray-900">Latest Questions</h2>
+        </div>
+        <div className="space-y-4">
+          {[...Array(3)].map((_, i) => (
+            <Card key={i}>
+              <CardContent className="p-6">
+                <div className="flex gap-4">
+                  <div className="flex flex-col items-center space-y-2 min-w-[80px]">
+                    <Skeleton className="h-8 w-12" />
+                    <Skeleton className="h-8 w-12" />
+                    <Skeleton className="h-8 w-12" />
+                  </div>
+                  <div className="flex-1 space-y-3">
+                    <Skeleton className="h-6 w-3/4" />
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-2/3" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h2 className="text-3xl font-bold text-gray-900">Latest Questions</h2>
+        </div>
+        <div className="text-center py-8">
+          <p className="text-gray-600">Failed to load questions. Please try again.</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-3xl font-bold text-gray-900">Latest Questions</h2>
         <div className="text-sm text-gray-600">
-          {mockQuestions.length} questions
+          {questions?.length || 0} questions
         </div>
       </div>
 
       <div className="space-y-4">
-        {mockQuestions.map((question) => (
+        {questions?.map((question) => (
           <Card 
             key={question.id}
             className="hover:shadow-md transition-shadow cursor-pointer"
@@ -129,6 +123,12 @@ export const QuestionList = ({ onQuestionClick }: QuestionListProps) => {
           </Card>
         ))}
       </div>
+
+      {(!questions || questions.length === 0) && (
+        <div className="text-center py-8">
+          <p className="text-gray-600">No questions yet. Be the first to ask one!</p>
+        </div>
+      )}
     </div>
   );
 };
