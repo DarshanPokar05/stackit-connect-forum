@@ -87,7 +87,7 @@ This approach provides good security while maintaining a smooth user experience.
   },
   {
     id: "2",
-    content: `Another approach is to use a dedicated library like `@auth0/auth0-react` or `react-query` with custom hooks.
+    content: `Another approach is to use a dedicated library like \`@auth0/auth0-react\` or \`react-query\` with custom hooks.
 
 Here's a simple custom hook approach:
 

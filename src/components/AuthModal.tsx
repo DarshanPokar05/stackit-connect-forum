@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 
 interface AuthModalProps {
   open: boolean;
@@ -18,25 +20,64 @@ export const AuthModal = ({ open, onClose, mode, onSwitchMode }: AuthModalProps)
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [username, setUsername] = useState("");
+  const [loading, setLoading] = useState(false);
+  
+  const { signIn, signUp } = useAuth();
+  const { toast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (mode === 'register') {
-      if (password !== confirmPassword) {
-        alert("Passwords don't match!");
-        return;
+    setLoading(true);
+
+    try {
+      if (mode === 'register') {
+        if (password !== confirmPassword) {
+          toast({
+            title: "Error",
+            description: "Passwords don't match!",
+            variant: "destructive",
+          });
+          return;
+        }
+        
+        const { error } = await signUp(email, password, username);
+        if (error) {
+          toast({
+            title: "Sign Up Error",
+            description: error.message,
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Success",
+            description: "Please check your email to confirm your account.",
+          });
+          onClose();
+        }
+      } else {
+        const { error } = await signIn(email, password);
+        if (error) {
+          toast({
+            title: "Sign In Error",
+            description: error.message,
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Success",
+            description: "Welcome back!",
+          });
+          onClose();
+        }
       }
-      console.log("Registering:", { email, password, username });
-    } else {
-      console.log("Logging in:", { email, password });
+    } finally {
+      setLoading(false);
+      // Reset form
+      setEmail("");
+      setPassword("");
+      setConfirmPassword("");
+      setUsername("");
     }
-    
-    // Reset form
-    setEmail("");
-    setPassword("");
-    setConfirmPassword("");
-    setUsername("");
-    onClose();
   };
 
   return (
@@ -104,8 +145,9 @@ export const AuthModal = ({ open, onClose, mode, onSwitchMode }: AuthModalProps)
           <Button 
             type="submit" 
             className="w-full bg-blue-600 hover:bg-blue-700"
+            disabled={loading}
           >
-            {mode === 'login' ? 'Sign In' : 'Create Account'}
+            {loading ? 'Loading...' : (mode === 'login' ? 'Sign In' : 'Create Account')}
           </Button>
         </form>
 

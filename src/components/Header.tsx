@@ -1,8 +1,15 @@
 
-import { Bell, Search, Plus, User } from "lucide-react";
+import { Bell, Search, Plus, User, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { useAuth } from "@/contexts/AuthContext";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface HeaderProps {
   onAskQuestion: () => void;
@@ -10,6 +17,12 @@ interface HeaderProps {
 }
 
 export const Header = ({ onAskQuestion, onAuthClick }: HeaderProps) => {
+  const { user, signOut } = useAuth();
+
+  const handleSignOut = async () => {
+    await signOut();
+  };
+
   return (
     <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
       <div className="container mx-auto px-4 max-w-6xl">
@@ -44,22 +57,39 @@ export const Header = ({ onAskQuestion, onAuthClick }: HeaderProps) => {
               </Badge>
             </div>
 
-            <div className="flex items-center space-x-2">
-              <Button
-                variant="ghost"
-                onClick={() => onAuthClick('login')}
-                className="text-gray-600 hover:text-gray-800"
-              >
-                Login
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => onAuthClick('register')}
-                className="border-blue-600 text-blue-600 hover:bg-blue-50"
-              >
-                Sign Up
-              </Button>
-            </div>
+            {user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="flex items-center space-x-2">
+                    <User className="h-4 w-4" />
+                    <span>{user.user_metadata?.username || user.email}</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={handleSignOut}>
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Sign Out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <div className="flex items-center space-x-2">
+                <Button
+                  variant="ghost"
+                  onClick={() => onAuthClick('login')}
+                  className="text-gray-600 hover:text-gray-800"
+                >
+                  Login
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => onAuthClick('register')}
+                  className="border-blue-600 text-blue-600 hover:bg-blue-50"
+                >
+                  Sign Up
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       </div>
